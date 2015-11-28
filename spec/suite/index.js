@@ -52,11 +52,13 @@ describe("Sqlite", function() {
       expect(Sqlite.enabled()).toEqual({
         arrays: false,
         transactions: true,
-        booleans: true
+        booleans: true,
+        default: false
       });
       expect(Sqlite.enabled('arrays')).toBe(false);
       expect(Sqlite.enabled('transactions')).toBe(true);
       expect(Sqlite.enabled('booleans')).toBe(true);
+      expect(Sqlite.enabled('default')).toBe(false);
 
     });
 
@@ -342,6 +344,25 @@ describe("Sqlite", function() {
         yield schema.create();
 
         yield schema.insert({ name: 'new gallery' });
+        expect(schema.lastInsertId()).toBe(1);
+
+        yield schema.drop();
+      }.bind(this)).then(function() {
+        done();
+      });
+
+    });
+
+    it("gets the encoding last insert ID even with an empty record", function(done) {
+
+      co(function*() {
+        var schema = new Schema({ connection: this.connection });
+        schema.source('gallery');
+        schema.set('id',   { type: 'serial' });
+        schema.set('name', { type: 'string' });
+        yield schema.create();
+
+        yield schema.insert({});
         expect(schema.lastInsertId()).toBe(1);
 
         yield schema.drop();
