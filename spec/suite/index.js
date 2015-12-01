@@ -165,6 +165,11 @@ describe("Sqlite", function() {
         var gallery = cursor.next();
         expect(gallery.name).toBe('updated gallery');
 
+        expect(yield schema.delete({ id: id })).toBe(true);
+
+        var cursor = yield this.connection.query('SELECT "name" FROM "gallery" WHERE "id" = ' + id);
+        expect(cursor.valid()).toBe(false);
+
         yield schema.drop();
         done();
       }.bind(this));
