@@ -166,7 +166,7 @@ class Sqlite extends Database {
         if (typeof this.lastID !== undefined) {
           self._lastInsertId = this.lastID;
         }
-        accept(new cursor({ data: data ? data : [] }));
+        accept(data ? new cursor({ data: data }) : true);
       };
 
       // Thanks node-sqlite3 for such crappy API SQL !
