@@ -152,8 +152,8 @@ describe("Sqlite", function() {
       co(function*() {
         var schema = new Schema({ connection: this.connection });
         schema.source('gallery');
-        schema.set('id', { type: 'serial' });
-        schema.set('name', { type: 'string' });
+        schema.column('id', { type: 'serial' });
+        schema.column('name', { type: 'string' });
         yield schema.create();
 
         expect(yield schema.insert({ name: 'new gallery' })).toBe(true);
@@ -198,7 +198,7 @@ describe("Sqlite", function() {
       co(function*() {
         var schema = new Schema({ connection: this.connection });
         schema.source('gallery');
-        schema.set('id', { type: 'serial' });
+        schema.column('id', { type: 'serial' });
         yield schema.create();
 
         var sources = yield this.connection.sources();
@@ -221,26 +221,26 @@ describe("Sqlite", function() {
 
       this.schema = new Schema();
       this.schema.source('gallery');
-      this.schema.set('id', { type: 'serial' });
-      this.schema.set('name', {
+      this.schema.column('id', { type: 'serial' });
+      this.schema.column('name', {
         type: 'string',
         length: 128,
         'default': 'Johnny Boy'
       });
-      this.schema.set('active', {
+      this.schema.column('active', {
         type: 'boolean',
         'default': true
       });
-      this.schema.set('inactive', {
+      this.schema.column('inactive', {
         type: 'boolean',
         'default': false
       });
-      this.schema.set('money', {
+      this.schema.column('money', {
         type: 'decimal',
         length: 10,
         precision: 2
       });
-      this.schema.set('created', {
+      this.schema.column('created', {
         type: 'datetime',
         use: 'timestamp',
         'default': { ':plain': 'CURRENT_TIMESTAMP' }
@@ -256,7 +256,7 @@ describe("Sqlite", function() {
 
         var gallery = yield this.connection.describe('gallery');
 
-        expect(gallery.field('id')).toEqual({
+        expect(gallery.column('id')).toEqual({
           use: 'integer',
           type: 'integer',
           null: false,
@@ -264,7 +264,7 @@ describe("Sqlite", function() {
           array: false
         });
 
-        expect(gallery.field('name')).toEqual({
+        expect(gallery.column('name')).toEqual({
           use: 'varchar',
           type: 'string',
           length: 128,
@@ -273,7 +273,7 @@ describe("Sqlite", function() {
           array: false
         });
 
-        expect(gallery.field('active')).toEqual({
+        expect(gallery.column('active')).toEqual({
           use: 'boolean',
           type: 'boolean',
           null: true,
@@ -281,7 +281,7 @@ describe("Sqlite", function() {
           array: false
         });
 
-        expect(gallery.field('inactive')).toEqual({
+        expect(gallery.column('inactive')).toEqual({
           use: 'boolean',
           type: 'boolean',
           null: true,
@@ -289,7 +289,7 @@ describe("Sqlite", function() {
           array: false
         });
 
-        expect(gallery.field('money')).toEqual({
+        expect(gallery.column('money')).toEqual({
           use: 'decimal',
           type: 'decimal',
           length: 10,
@@ -299,7 +299,7 @@ describe("Sqlite", function() {
           array: false
         });
 
-        expect(gallery.field('created')).toEqual({
+        expect(gallery.column('created')).toEqual({
           use: 'timestamp',
           type: 'datetime',
           null: true,
@@ -318,15 +318,15 @@ describe("Sqlite", function() {
 
       co(function*() {
 
-        var gallery = yield this.connection.describe('gallery', this.schema.fields());
+        var gallery = yield this.connection.describe('gallery', this.schema.columns());
 
-        expect(gallery.field('id')).toEqual({
+        expect(gallery.column('id')).toEqual({
           type: 'serial',
           null: false,
           array: false
         });
 
-        expect(gallery.field('name')).toEqual({
+        expect(gallery.column('name')).toEqual({
           type: 'string',
           length: 128,
           null: true,
@@ -334,21 +334,21 @@ describe("Sqlite", function() {
           array: false
         });
 
-        expect(gallery.field('active')).toEqual({
+        expect(gallery.column('active')).toEqual({
           type: 'boolean',
           null: true,
           'default': true,
           array: false
         });
 
-        expect(gallery.field('inactive')).toEqual({
+        expect(gallery.column('inactive')).toEqual({
           type: 'boolean',
           null: true,
           'default': false,
           array: false
         });
 
-        expect(gallery.field('money')).toEqual({
+        expect(gallery.column('money')).toEqual({
           type: 'decimal',
           length: 10,
           precision: 2,
@@ -356,7 +356,7 @@ describe("Sqlite", function() {
           array: false
         });
 
-        expect(gallery.field('created')).toEqual({
+        expect(gallery.column('created')).toEqual({
           use: 'timestamp',
           type: 'datetime',
           null: true,
@@ -378,8 +378,8 @@ describe("Sqlite", function() {
       co(function*() {
         var schema = new Schema({ connection: this.connection });
         schema.source('gallery');
-        schema.set('id',   { type: 'serial' });
-        schema.set('name', { type: 'string' });
+        schema.column('id',   { type: 'serial' });
+        schema.column('name', { type: 'string' });
         yield schema.create();
 
         yield schema.insert({ name: 'new gallery' });
@@ -397,8 +397,8 @@ describe("Sqlite", function() {
       co(function*() {
         var schema = new Schema({ connection: this.connection });
         schema.source('gallery');
-        schema.set('id',   { type: 'serial' });
-        schema.set('name', { type: 'string' });
+        schema.column('id',   { type: 'serial' });
+        schema.column('name', { type: 'string' });
         yield schema.create();
 
         yield schema.insert({});
