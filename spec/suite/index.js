@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import co from 'co';
 import { Schema } from 'chaos-database';
 import Sqlite from '../../src';
@@ -165,7 +166,7 @@ describe("Sqlite", function() {
         var gallery = cursor.next();
         expect(gallery.name).toBe('updated gallery');
 
-        expect(yield schema.delete({ id: id })).toBe(true);
+        expect(yield schema.truncate({ id: id })).toBe(true);
 
         var cursor = yield this.connection.query('SELECT "name" FROM "gallery" WHERE "id" = ' + id);
         expect(cursor.valid()).toBe(false);
@@ -225,15 +226,15 @@ describe("Sqlite", function() {
       this.schema.column('name', {
         type: 'string',
         length: 128,
-        'default': 'Johnny Boy'
+        default: 'Johnny Boy'
       });
       this.schema.column('active', {
         type: 'boolean',
-        'default': true
+        default: true
       });
       this.schema.column('inactive', {
         type: 'boolean',
-        'default': false
+        default: false
       });
       this.schema.column('money', {
         type: 'decimal',
@@ -243,7 +244,7 @@ describe("Sqlite", function() {
       this.schema.column('created', {
         type: 'datetime',
         use: 'timestamp',
-        'default': { ':plain': 'CURRENT_TIMESTAMP' }
+        default: { ':plain': 'CURRENT_TIMESTAMP' }
       });
 
     });
@@ -260,7 +261,7 @@ describe("Sqlite", function() {
           use: 'integer',
           type: 'integer',
           null: false,
-          'default': null,
+          default: null,
           array: false
         });
 
@@ -269,7 +270,7 @@ describe("Sqlite", function() {
           type: 'string',
           length: 128,
           null: true,
-          'default': 'Johnny Boy',
+          default: 'Johnny Boy',
           array: false
         });
 
@@ -277,7 +278,7 @@ describe("Sqlite", function() {
           use: 'boolean',
           type: 'boolean',
           null: true,
-          'default': true,
+          default: true,
           array: false
         });
 
@@ -285,7 +286,7 @@ describe("Sqlite", function() {
           use: 'boolean',
           type: 'boolean',
           null: true,
-          'default': false,
+          default: false,
           array: false
         });
 
@@ -295,7 +296,7 @@ describe("Sqlite", function() {
           length: 10,
           precision: 2,
           null: true,
-          'default': null,
+          default: null,
           array: false
         });
 
@@ -303,7 +304,7 @@ describe("Sqlite", function() {
           use: 'timestamp',
           type: 'datetime',
           null: true,
-          'default': null,
+          default: null,
           array: false
         });
 
@@ -330,21 +331,21 @@ describe("Sqlite", function() {
           type: 'string',
           length: 128,
           null: true,
-          'default': 'Johnny Boy',
+          default: 'Johnny Boy',
           array: false
         });
 
         expect(gallery.column('active')).toEqual({
           type: 'boolean',
           null: true,
-          'default': true,
+          default: true,
           array: false
         });
 
         expect(gallery.column('inactive')).toEqual({
           type: 'boolean',
           null: true,
-          'default': false,
+          default: false,
           array: false
         });
 
@@ -361,7 +362,7 @@ describe("Sqlite", function() {
           type: 'datetime',
           null: true,
           array: false,
-          'default': { ':plain': 'CURRENT_TIMESTAMP' }
+          default: { ':plain': 'CURRENT_TIMESTAMP' }
         });
       }.bind(this)).then(function() {
         done();
@@ -432,6 +433,78 @@ describe("Sqlite", function() {
       }.bind(this)).then(function() {
         done();
       });
+
+    });
+
+  });
+
+  describe(".format()", function() {
+
+    it("formats according default `'datasource'` handlers", function() {
+
+      expect(this.connection.format('datasource', 'id', 123)).toBe('123');
+      expect(this.connection.format('datasource', 'serial', 123)).toBe('123');
+      expect(this.connection.format('datasource', 'integer', 123)).toBe('123');
+      expect(this.connection.format('datasource', 'float', 12.3)).toBe('12.3');
+      expect(this.connection.format('datasource', 'decimal', 12.3)).toBe('12.3');
+      var date = new Date('2014-11-21');
+      expect(this.connection.format('datasource', 'date', date)).toBe("'2014-11-21'");
+      expect(this.connection.format('datasource', 'date', '2014-11-21')).toBe("'2014-11-21'");
+      var datetime = new Date('2014-11-21T10:20:45.000Z');
+      expect(this.connection.format('datasource', 'datetime', datetime)).toBe("'2014-11-21 10:20:45'");
+      expect(this.connection.format('datasource', 'datetime', '2014-11-21T10:20:45+02:00')).toBe("'2014-11-21 08:20:45'");
+      expect(this.connection.format('datasource', 'boolean', true)).toBe('1');
+      expect(this.connection.format('datasource', 'boolean', false)).toBe('0');
+      expect(this.connection.format('datasource', 'null', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'string', 'abc')).toBe("'abc'");
+      expect(this.connection.format('datasource', '_default_', 123)).toBe("'123'");
+      expect(this.connection.format('datasource', '_undefined_', 123)).toBe("'123'");
+
+    });
+
+    it("formats according default `'cast'` handlers", function() {
+
+      expect(this.connection.format('cast', 'id', '123')).toBe(123);
+      expect(this.connection.format('cast', 'serial', '123')).toBe(123);
+      expect(this.connection.format('cast', 'integer', '123')).toBe(123);
+      expect(this.connection.format('cast', 'float', '12.3')).toBe(12.3);
+      expect(this.connection.format('cast', 'decimal', '12.3')).toBe('12.30');
+      var date = new Date('2014-11-21');
+      expect(this.connection.format('cast', 'date', date)).toEqual(date);
+      expect(this.connection.format('cast', 'date', '2014-11-21')).toEqual(date);
+      var datetime = new Date('2014-11-21 10:20:45');
+      expect(this.connection.format('cast', 'datetime', datetime)).toEqual(datetime);
+
+      var offset = new Date('2014-11-21 10:20:45').getTimezoneOffset();
+      var timezone = ('0' + Math.floor(Math.abs(offset)/60)).slice(-2) + ':' + ('0' + offset%60).slice(-2);
+      timezone = offset > 0 ? '-' + timezone : '+' + timezone;
+      var local = new Date('2014-11-21T10:20:45' + timezone);
+      expect(this.connection.format('cast', 'datetime', '2014-11-21 10:20:45')).toEqual(local);
+
+      expect(this.connection.format('cast', 'datetime', 1416565245 * 1000)).toEqual(new Date('2014-11-21T10:20:45.000Z'));
+      expect(this.connection.format('cast', 'boolean', 1)).toBe(true);
+      expect(this.connection.format('cast', 'boolean', 0)).toBe(false);
+      expect(this.connection.format('cast', 'null', 'NULL')).toBe(null);
+      expect(this.connection.format('cast', 'string', 'abc')).toBe('abc');
+      expect(this.connection.format('cast', '_default_', 123)).toBe(123);
+      expect(this.connection.format('cast', '_undefined_', 123)).toBe(123);
+
+    });
+
+    it("formats `null` values", function() {
+
+      expect(this.connection.format('datasource', 'id', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'serial', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'integer', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'float', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'decimal', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'date', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'datetime', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'boolean', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'null', null)).toBe('NULL');
+      expect(this.connection.format('datasource', 'string', null)).toBe('NULL');
+      expect(this.connection.format('datasource', '_default_',null)).toBe('NULL');
+      expect(this.connection.format('datasource', '_undefined_', null)).toBe('NULL');
 
     });
 
