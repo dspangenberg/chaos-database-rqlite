@@ -1,8 +1,7 @@
-import 'babel-polyfill';
-import co from 'co';
-import { Schema } from 'chaos-database';
-import Sqlite from '../../src';
-import { Dialect } from 'sql-dialect';
+var co = require('co');
+var Schema = require('chaos-database').Schema;
+var Sqlite = require('../../src');
+var Dialect = require('sql-dialect').Dialect;
 
 Promise = require('bluebird');
 
