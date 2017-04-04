@@ -268,7 +268,7 @@ describe("Sqlite", function() {
           use: 'varchar',
           type: 'string',
           length: 128,
-          null: true,
+          null: false,
           default: 'Johnny Boy',
           array: false
         });
@@ -276,7 +276,7 @@ describe("Sqlite", function() {
         expect(gallery.column('active')).toEqual({
           use: 'boolean',
           type: 'boolean',
-          null: true,
+          null: false,
           default: true,
           array: false
         });
@@ -284,7 +284,7 @@ describe("Sqlite", function() {
         expect(gallery.column('inactive')).toEqual({
           use: 'boolean',
           type: 'boolean',
-          null: true,
+          null: false,
           default: false,
           array: false
         });
@@ -294,7 +294,7 @@ describe("Sqlite", function() {
           type: 'decimal',
           length: 10,
           precision: 2,
-          null: true,
+          null: false,
           default: null,
           array: false
         });
@@ -302,7 +302,7 @@ describe("Sqlite", function() {
         expect(gallery.column('created')).toEqual({
           use: 'timestamp',
           type: 'datetime',
-          null: true,
+          null: false,
           default: null,
           array: false
         });
@@ -329,21 +329,21 @@ describe("Sqlite", function() {
         expect(gallery.column('name')).toEqual({
           type: 'string',
           length: 128,
-          null: true,
+          null: false,
           default: 'Johnny Boy',
           array: false
         });
 
         expect(gallery.column('active')).toEqual({
           type: 'boolean',
-          null: true,
+          null: false,
           default: true,
           array: false
         });
 
         expect(gallery.column('inactive')).toEqual({
           type: 'boolean',
-          null: true,
+          null: false,
           default: false,
           array: false
         });
@@ -352,14 +352,14 @@ describe("Sqlite", function() {
           type: 'decimal',
           length: 10,
           precision: 2,
-          null: true,
+          null: false,
           array: false
         });
 
         expect(gallery.column('created')).toEqual({
           use: 'timestamp',
           type: 'datetime',
-          null: true,
+          null: false,
           array: false,
           default: { ':plain': 'CURRENT_TIMESTAMP' }
         });
@@ -379,7 +379,7 @@ describe("Sqlite", function() {
         var schema = new Schema({ connection: this.connection });
         schema.source('gallery');
         schema.column('id',   { type: 'serial' });
-        schema.column('name', { type: 'string' });
+        schema.column('name', { type: 'string', null: true });
         yield schema.create();
 
         yield schema.insert({ name: 'new gallery' });
@@ -398,7 +398,7 @@ describe("Sqlite", function() {
         var schema = new Schema({ connection: this.connection });
         schema.source('gallery');
         schema.column('id',   { type: 'serial' });
-        schema.column('name', { type: 'string' });
+        schema.column('name', { type: 'string', null: true });
         yield schema.create();
 
         yield schema.insert({});
