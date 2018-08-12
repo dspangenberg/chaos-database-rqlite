@@ -19,7 +19,6 @@
     "extend-merge": "^1.0.5",
     "rqlite-js": "^0.0.21",
     "sql-dialect": "^4.0",
-    "sqlite3": "^3.1.8"
   },
   "devDependencies": {
     "bluebird": "^3.5.0",
