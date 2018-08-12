@@ -1,5 +1,5 @@
 {
-  "name": "chaos-database-sqlite",
+  "name": "chaos-database-rqlite",
   "version": "11.0.0",
   "description": "SQLite adapter for Chaos ORM.",
   "license": "MIT",
