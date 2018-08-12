@@ -4,6 +4,11 @@ var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
 var Database = require('chaos-database').Database;
 var SqliteDialect = require('sql-dialect').Sqlite;
+var connect = require('rqlite-js/lib/api/data/client')
+
+var toPlainJs = require('rqlite-js/lib/api/results').toPlainJs
+var getError = require('rqlite-js/lib/api/results').getError
+
 
 /**
  * SQLite adapter
@@ -126,13 +131,16 @@ class Sqlite extends Database {
     var self = this;
 
     return new Promise(function(accept, reject) {
-      var client = self._client = new sqlite3.Database(config.database, config.mode, function(err) {
-        if (err) {
-          return reject(new Error('Unable to connect, error ' + err.code + ' ' + err.stack));
-        }
+
+      var client = self._client
+
+      connect(config.database).then(function(api) {
+        client = self._client = api
         self._connected = true;
         accept(client)
-      });
+      }).catch(function (error) {
+        reject(error)
+      })
     });
   }
 
@@ -164,32 +172,96 @@ class Sqlite extends Database {
    *                     WARNING data must be clean at this step. SQL injection must be handled earlier.
    * @return object      A `Cursor` instance.
    */
+
   query(sql, data, options) {
+
+
     var self = this;
     return new Promise(function(accept, reject) {
+
       var defaults = {};
       options = extend({}, defaults, options);
 
       var cursor = self.constructor.classes().cursor;
 
-      var response = function(err, data) {
+      var response = function(err, data, lastId) {
         if (err) {
           reject(err);
           return;
         }
-        if (typeof this.lastID !== undefined) {
-          self._lastInsertId = this.lastID;
+
+        if (typeof lastId!== undefined) {
+          self._lastInsertId = lastId;
         }
+
         accept(data ? new cursor({ data: data }) : true);
+
       };
 
       // Thanks node-sqlite3 for such crappy API SQL !
+      var method;
+      var pure = false
+
       self.connect().then(function(client) {
-        if (sql.match(/^(SELECT|PRAGMA)/i)) {
-          client.all(sql, response);
+
+        if (sql instanceof String) {
+
         } else {
-          client.run(sql, response);
+          console.log(sql)
+          sql = sql.toString()
         }
+
+        console.log(sql)
+
+
+        if (sql.match(/^(SELECT|PRAGMA)/i)) {
+          method = client.select
+        }
+        if (sql.match(/^(INSERT)/i)) {
+          method = client.insert
+        }
+
+        if (sql.match(/^(UPDATE)/i)) {
+          method = client.update
+        }
+
+        if (sql.match(/^(DELETE)/i)) {
+          method = client.delete
+        }
+
+        if (sql.match(/^(CREATE TABLE)/i)) {
+          method = client.table.create
+        }
+
+        if (sql.match(/^(DROP TABLE)/i)) {
+          method = client.table.drop
+        }
+
+          method(sql).then(function(res) {
+
+              var error = getError(res.body.results);
+              var result = toPlainJs(res.body.results);
+
+
+              var lastID = res.body.results[0].last_insert_id;
+
+              if (sql.match(/^(SELECT \"sql\" FROM \"sqlite_master\")/i)) {
+                var returnRes = toPlainJs(res.body.results)
+                console.log(returnRes)
+                accept(returnRes)
+              }
+
+              if (method === client.insert) {
+                response(error, false, lastID)
+              } else {
+                response(error, result, lastID)
+              }
+
+
+          }).catch(function (error) {
+            response(error, null, undefined)
+          })
+
       });
     });
   }
@@ -201,19 +273,9 @@ class Sqlite extends Database {
    * @return Promise
    */
   execute(sql) {
-    var self = this;
-    return new Promise(function(accept, reject) {
-      self.connect().then(function(client) {
-        client.run(sql, function(err, data) {
-          if (err) {
-            reject(err);
-            return;
-          }
-          accept();
-        });
-      });
-    });
+    this.query(sql);
   }
+
 
   /**
    * Returns the last insert id from the database.
@@ -229,8 +291,11 @@ class Sqlite extends Database {
    *
    * @return Object Returns an object of sources to which models can connect.
    */
+
   sources() {
+
     var select = this.dialect().statement('select');
+
     select.fields('name')
       .from('sqlite_master')
       .where({ type: 'table' });
@@ -246,7 +311,15 @@ class Sqlite extends Database {
   fields(name) {
     return co(function*() {
       var tmp, fields = [];
-      var columns = yield this.query('PRAGMA table_info(' + name +')');
+
+
+      var select = this.dialect().statement('select');
+      var sql = select.fields('sql')
+        .from('sqlite_master')
+        .where({ type: 'table' })
+        .where({ tbl_name: name });
+
+      var columns = yield this.query(sql);
       for (var column of columns) {
         var field = this._field(column);
         var dflt = column.dflt_value;
@@ -312,7 +385,7 @@ class Sqlite extends Database {
     if (!this._client) {
       return true;
     }
-    this._client.close();
+    // this._client.close();
     this._client = undefined;
     this._connected = false;
     return true;
