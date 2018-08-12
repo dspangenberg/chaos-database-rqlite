@@ -49,7 +49,6 @@ class Sqlite extends Database {
         dialect: SqliteDialect
       },
       database: undefined,
-      mode : sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
       connect: true,
       alias: true,
       client: undefined,
