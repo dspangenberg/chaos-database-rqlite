@@ -1,5 +1,4 @@
 var co = require('co');
-var sqlite3 = require('sqlite3');
 var extend = require('extend-merge').extend;
 var merge = require('extend-merge').merge;
 var Database = require('chaos-database').Database;
